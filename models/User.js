@@ -8,6 +8,9 @@ const userSchema = new Schema({
   userverified: Boolean,
   userhashID: String,
   usertoken: String,
+  userpassID: String,
+  userpasstoken: String,
+  userpassstatus: Boolean,
 });
 
 module.exports = mongoose.model("User", userSchema);
