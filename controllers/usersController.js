@@ -6,7 +6,7 @@ const verifymail = require("../config/verifymail");
 const register = async (req, res) => {
   try {
     const { email, password } = req.body;
-    const userExists = await User.findOne({ useremail: email }).exec();
+    const userExists = await User.findOne({ userEmail: email }).exec();
     if (userExists)
       return res.status(401).json({ message: "Email Already exists" });
     let salt = await bcrypt.genSalt(Number(process.env.SALT));
@@ -24,14 +24,15 @@ const register = async (req, res) => {
       }
     );
     const result = await User.create({
-      useremail: email,
-      userpassword: hash,
-      userverified: false,
-      userhashID: hashID,
-      usertoken: verifytoken,
+      userEmail: email,
+      userPassword: hash,
+      userVerified: false,
+      userHashID: hashID,
+      userToken: verifytoken,
+      userDetailsReceived: false,
     });
     const getentry = await User.findById(result._id).exec();
-    const verifyurl = `${process.env.BASE_URL}/${getentry.userhashID}/verify/${getentry.usertoken}`;
+    const verifyurl = `${process.env.BASE_URL}/${getentry.userHashID}/verify/${getentry.userToken}`;
     await verifymail(
       email,
       "Verify Email",
@@ -46,17 +47,17 @@ const register = async (req, res) => {
 const verify = async (req, res) => {
   try {
     const dataToVerify = await User.findOne({
-      userhashID: req.params.id,
-      usertoken: req.params.token,
+      userHashID: req.params.id,
+      userToken: req.params.token,
     }).exec();
     if (!dataToVerify) return res.status(400).json({ message: "invalid link" });
     await User.findOneAndUpdate(
       { _id: dataToVerify._id },
-      { $set: { userverified: true, userhashID: "", usertoken: "" } }
+      { $set: { userVerified: true, userHashID: "", userToken: "" } }
     );
     await User.findOneAndUpdate(
       { _id: dataToVerify._id },
-      { $unset: { userhashID: "", usertoken: "" } }
+      { $unset: { userHashID: "", userToken: "" } }
     );
     res.status(200).json({ message: "Email verified Successfully" });
   } catch (err) {
@@ -68,20 +69,20 @@ const signin = async (req, res) => {
   try {
     //getting the data from the db for the sent email
     const getUser = await User.findOne({
-      useremail: req.body.email,
+      userEmail: req.body.email,
     }).exec();
     // Login logic
     if (getUser) {
-      let email = getUser.email;
+      let { userDetailsReceived, userEmail, userName } = getUser;
       let compare = await bcrypt.compare(
         req.body.password,
-        getUser.userpassword
+        getUser.userPassword
       );
-      if (compare && getUser.userverified) {
+      if (compare && getUser.userVerified) {
         let token = jwt.sign({ _id: getUser._id }, process.env.SECRET, {
           expiresIn: "2 days",
         });
-        res.status(200).json({ token, email });
+        res.status(200).json({ token, userDetailsReceived, userEmail });
       } else {
         res.status(401).json({
           message:
@@ -98,7 +99,7 @@ const signin = async (req, res) => {
 
 const forpass = async (req, res) => {
   try {
-    const userExists = await User.findOne({ useremail: req.body.email }).exec();
+    const userExists = await User.findOne({ userEmail: req.body.email }).exec();
     if (!userExists)
       return res.status(401).json({ message: "Invalid Email ID" });
     let salt = await bcrypt.genSalt(Number(process.env.SALT));
@@ -111,17 +112,17 @@ const forpass = async (req, res) => {
       expiresIn: "2 days",
     });
     const result = await User.findOneAndUpdate(
-      { useremail: req.body.email },
+      { userEmail: req.body.email },
       {
         $set: {
-          userpassID: passID,
-          userpasstoken: passtoken,
-          userpassstatus: false,
+          userPassID: passID,
+          userPassToken: passtoken,
+          userPassStatus: false,
         },
       }
     );
     const getentry = await User.findById(result._id).exec();
-    const verifyurl = `${process.env.BASE_URL}/forpass/${getentry.userpassID}/verify/${getentry.userpasstoken}`;
+    const verifyurl = `${process.env.BASE_URL}/forpass/${getentry.userPassID}/verify/${getentry.userPassToken}`;
     await verifymail(
       req.body.email,
       "verify Email to reset password",
@@ -136,18 +137,18 @@ const forpass = async (req, res) => {
 const verifypass = async (req, res) => {
   try {
     const dataToVerify = await User.findOne({
-      userpassID: req.params.id,
-      userpasstoken: req.params.token,
+      userPassID: req.params.id,
+      userPassToken: req.params.token,
     }).exec();
     console.log(dataToVerify);
     if (!dataToVerify) return res.status(400).json({ message: "invalid link" });
     await User.findOneAndUpdate(
       { _id: dataToVerify._id },
-      { $set: { userpassstatus: true, userpassID: "", userpasstoken: "" } }
+      { $set: { userPassStatus: true, userPassID: "", userPassToken: "" } }
     );
     await User.findOneAndUpdate(
       { _id: dataToVerify._id },
-      { $unset: { userpassID: "", userpasstoken: "" } }
+      { $unset: { userPassID: "", userPassToken: "" } }
     );
     res.status(200).json({ message: "Email verified Successfully" });
   } catch (err) {
@@ -157,23 +158,23 @@ const verifypass = async (req, res) => {
 
 const resetpass = async (req, res) => {
   try {
-    const userExists = await User.findOne({ useremail: req.body.email }).exec();
+    const userExists = await User.findOne({ userEmail: req.body.email }).exec();
     if (!userExists)
       return res.status(401).json({ message: "Invalid Email ID" });
     let salt = await bcrypt.genSalt(Number(process.env.SALT));
     let hash = await bcrypt.hash(req.body.password, salt);
-    if (userExists.userpassstatus) {
+    if (userExists.userPassStatus) {
       await User.findOneAndUpdate(
-        { useremail: req.body.email },
+        { userEmail: req.body.email },
         {
           $set: {
-            userpassword: hash,
+            userPassword: hash,
           },
         }
       );
       await User.findOneAndUpdate(
-        { useremail: req.body.email },
-        { $unset: { userpassstatus: "" } }
+        { userEmail: req.body.email },
+        { $unset: { userPassStatus: "" } }
       );
       res.status(200).json({ message: "Password changed successfully" });
     } else {
@@ -186,6 +187,40 @@ const resetpass = async (req, res) => {
     res.status(500).json({ message: `something went wrong; ${err}` });
   }
 };
+
+const userdetails = async (req, res) => {
+  try {
+    const userExists = await User.findOne({ userEmail: req.body.email }).exec();
+    if (!userExists)
+      return res.status(401).json({
+        message: "oops Couldn't find your account, Please contact support",
+      });
+    await User.findOneAndUpdate(
+      { userEmail: req.body.email },
+      {
+        $set: {
+          userName: req.body.userName,
+          userDob: req.body.userDob,
+          userWeight: req.body.userWeight,
+          userTargetWeight: req.body.userTargetWeight,
+          userCalories: req.body.userCalories,
+          userVeg: req.body.userVeg,
+          userDetailsReceived: true,
+        },
+      }
+    );
+    const result = await User.findOne({ userEmail: req.body.email }).exec();
+
+    if (result) {
+      const { userDetailsReceived } = result;
+      res
+        .status(200)
+        .json({ message: "Details added Successfully", userDetailsReceived });
+    }
+  } catch (err) {
+    res.status(500).json({ message: `something went wrong; ${err}` });
+  }
+};
 module.exports = {
   register,
   verify,
@@ -193,4 +228,5 @@ module.exports = {
   forpass,
   verifypass,
   resetpass,
+  userdetails,
 };
