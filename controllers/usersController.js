@@ -5,7 +5,7 @@ const verifymail = require("../config/verifymail");
 
 const register = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, createdDate } = req.body;
     const userExists = await User.findOne({ userEmail: email }).exec();
     if (userExists)
       return res.status(401).json({ message: "Email Already exists" });
@@ -27,9 +27,13 @@ const register = async (req, res) => {
       userEmail: email,
       userPassword: hash,
       userVerified: false,
+      createdDate,
       userHashID: hashID,
       userToken: verifytoken,
       userDetailsReceived: false,
+      userCalorieStreak: 0,
+      userWaterStreak: 0,
+      userWorkoutStreak: 0,
     });
     const getentry = await User.findById(result._id).exec();
     const verifyurl = `${process.env.BASE_URL}/${getentry.userHashID}/verify/${getentry.userToken}`;
@@ -80,7 +84,7 @@ const signin = async (req, res) => {
       );
       if (compare && getUser.userVerified) {
         let token = jwt.sign({ _id: getUser._id }, process.env.SECRET, {
-          expiresIn: "2 days",
+          expiresIn: "30 days",
         });
         res.status(200).json({ token, userDetailsReceived, userEmail });
       } else {

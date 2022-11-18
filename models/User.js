@@ -4,6 +4,7 @@ const Schema = mongoose.Schema;
 const userSchema = new Schema({
   userEmail: String,
   userPassword: String,
+  createdDate: String,
   userType: String,
   userVerified: Boolean,
   userHashID: String,
@@ -13,11 +14,14 @@ const userSchema = new Schema({
   userPassStatus: Boolean,
   userName: String,
   userDob: String,
-  userWeight: String,
-  userTargetWeight: String,
-  userCalories: String,
+  userWeight: Number,
+  userTargetWeight: Number,
+  userCalories: Number,
   userVeg: String,
   userDetailsReceived: Boolean,
+  userCalorieStreak: Number,
+  userWaterStreak: Number,
+  userWorkoutStreak: Number,
 });
 
 module.exports = mongoose.model("User", userSchema);

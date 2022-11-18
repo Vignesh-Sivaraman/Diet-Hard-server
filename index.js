@@ -29,6 +29,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/users", require("./routes/users"));
+app.use("/usercalories", require("./routes/calories"));
 
 // port listen
 
