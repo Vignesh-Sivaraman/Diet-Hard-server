@@ -30,6 +30,9 @@ app.get("/", (req, res) => {
 
 app.use("/users", require("./routes/users"));
 app.use("/usercalories", require("./routes/calories"));
+app.use("/userwater", require("./routes/water"));
+app.use("/userworkout", require("./routes/workout"));
+app.use("/reports", require("./routes/reports"));
 
 // port listen
 

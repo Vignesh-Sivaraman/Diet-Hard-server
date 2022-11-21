@@ -1,21 +1,16 @@
-const Calorie = require("../models/Calorie");
+const Workout = require("../models/Workout");
 const User = require("../models/User");
 
 const addentry = async (req, res) => {
   try {
     const userExists = await User.findOne({ userEmail: req.body.email }).exec();
     if (userExists) {
-      const result = await Calorie.create({
+      const result = await Workout.create({
         userEmail: req.body.email,
         date: req.body.entryDate,
-        mealType: req.body.mealType,
-        mealTitle: req.body.mealTitle,
-        calories: req.body.calories,
-        fat: req.body.fat,
-        protein: req.body.protein,
-        carbohydrates: req.body.carbohydrates,
+        workoutTime: req.body.workoutTime,
       });
-      res.status(200).json({ message: `calories data added successfully` });
+      res.status(200).json({ message: `Workout data added successfully` });
     }
   } catch (err) {
     res.status(500).json({ message: `something went wrong; ${err}` });

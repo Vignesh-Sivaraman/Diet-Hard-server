@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
-const caloriesController = require("../controllers/caloriesController");
+const waterController = require("../controllers/waterController");
 const authenticate = require("../config/authenticate");
 
-router.route("/").post(authenticate, caloriesController.addentry);
+router.route("/").post(authenticate, waterController.addentry);
 
 module.exports = router;

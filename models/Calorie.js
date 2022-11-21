@@ -6,10 +6,10 @@ const calorieSchema = new Schema({
   date: String,
   mealType: String,
   mealTitle: String,
-  calories: String,
-  fat: String,
-  protein: String,
-  carbohydrates: String,
+  calories: Number,
+  fat: Number,
+  protein: Number,
+  carbohydrates: Number,
 });
 
 module.exports = mongoose.model("Calorie", calorieSchema);

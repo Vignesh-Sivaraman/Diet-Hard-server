@@ -144,7 +144,6 @@ const verifypass = async (req, res) => {
       userPassID: req.params.id,
       userPassToken: req.params.token,
     }).exec();
-    console.log(dataToVerify);
     if (!dataToVerify) return res.status(400).json({ message: "invalid link" });
     await User.findOneAndUpdate(
       { _id: dataToVerify._id },
@@ -208,7 +207,8 @@ const userdetails = async (req, res) => {
           userWeight: req.body.userWeight,
           userTargetWeight: req.body.userTargetWeight,
           userCalories: req.body.userCalories,
-          userVeg: req.body.userVeg,
+          userWater: req.body.userWater,
+          userWorkout: req.body.userWorkout,
           userDetailsReceived: true,
         },
       }
