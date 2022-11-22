@@ -39,7 +39,7 @@ const getTotalNutrientsByDate = async (req, res) => {
         date: req.body.presentDate,
       }).exec();
       dailyTotalWorkout = dailyWorkoutData.reduce(
-        (acc, item) => acc + parseInt(item.waterQty),
+        (acc, item) => acc + parseInt(item.workoutTime),
         0
       );
       dailyRemainingWorkout =
